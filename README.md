@@ -8,7 +8,7 @@ A production-grade, fault-tolerant Full-Stack LLM chatbot engineered with **Fast
 
 | Service | Deployment Platform | URL / Endpoint |
 | :--- | :--- | :--- |
-| **Frontend Application** | Vercel / Cloudflare Pages | `https://lyftr-ai-chat.vercel.app` *(Placeholder / configurable via repository)* |
+| **Frontend Application** | Vercel | `https://lyftr-ai-chatbot-eight.vercel.app` |
 | **Backend API** | Render / Railway / Fly.io | `https://lyftr-ai-backend.onrender.com` |
 | **API Health Status** | Public Status Check | `https://lyftr-ai-backend.onrender.com/health` |
 | **API Documentation** | Swagger / OpenAPI | `https://lyftr-ai-backend.onrender.com/docs` |
