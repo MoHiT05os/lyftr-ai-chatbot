@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: lyftr-ai-backend
+    runtime: python
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: LLM_API_KEYS
+        value: key_1_demo_secret,key_2_demo_secret
+      - key: ALLOWED_ORIGINS
+        value: "*"
+      - key: ENABLE_FAILURE_SIMULATION
+        value: "true"
+      - key: DEFAULT_MODEL
+        value: gemini/gemini-2.0-flash
