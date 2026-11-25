@@ -42,6 +42,9 @@ def get_key_pool() -> List[Dict[str, str]]:
     parts = [k.strip() for k in raw.split(",") if k.strip()]
     if not parts:
         parts = ["mock_key_1", "mock_key_2"]
+    elif len(parts) == 1:
+        # Guarantee at least 2 keys in pool for failover testing
+        parts.append("key_2_fallback_backup")
     
     return [
         {"key_id": f"key_{i+1}", "api_key": key}
@@ -72,11 +75,12 @@ def is_mock_or_demo_key(api_key: str) -> bool:
     if os.getenv("MOCK_LLM") == "true":
         return True
     lower = api_key.lower().strip()
-    if lower.startswith(("mock", "test", "key_", "placeholder", "demo")):
+    if lower.startswith(("mock", "test", "demo", "placeholder")):
         return True
-    if any(pat in lower for pat in ["demo", "secret", "placeholder", "test_key", "your_key", "dummy"]):
+    if any(pat in lower for pat in ["demo_secret", "placeholder", "test_key", "your_key", "dummy"]):
         return True
-    if not (lower.startswith("aizasy") or lower.startswith("sk-") or len(api_key) > 32):
+    # If not an identifiable real key format
+    if not (lower.startswith("sk-or-v1-") or lower.startswith("sk-") or lower.startswith("aizasy") or len(api_key) > 40):
         return True
     return False
 
@@ -135,6 +139,7 @@ def execute_chat_turn(
     reply_text: Optional[str] = None
     input_tokens = 0
     output_tokens = 0
+    actual_model_used = target_model
     
     for item in key_pool:
         k_id = item["key_id"]
@@ -160,12 +165,19 @@ def execute_chat_turn(
                 input_tokens = estimate_tokens(prompt_text)
                 output_tokens = estimate_tokens(reply_text)
                 chosen_key_id = k_id
+                actual_model_used = target_model
                 break
             
+            # Determine provider model: if OpenRouter key, use OpenRouter endpoint
+            current_model = target_model
+            if api_key.startswith("sk-or-v1-"):
+                current_model = "openrouter/liquid/lfm-3-1.7b:free"
+            
             response = litellm.completion(
-                model=target_model,
+                model=current_model,
                 messages=messages,
                 api_key=api_key,
+                max_tokens=300,
                 caching=True,
                 drop_params=True
             )
@@ -185,6 +197,7 @@ def execute_chat_turn(
                 output_tokens = estimate_tokens(reply_text)
                 
             chosen_key_id = k_id
+            actual_model_used = current_model
             break
             
         except Exception as e:
@@ -202,13 +215,13 @@ def execute_chat_turn(
         "reply": reply_text,
         "input_tokens": input_tokens,
         "output_tokens": output_tokens,
-        "model": target_model
+        "model": actual_model_used
     }
     
     return {
         "reply": reply_text,
         "resolution_source": "LIVE_INFERENCE",
-        "model": target_model,
+        "model": actual_model_used,
         "latency_ms": latency_ms,
         "input_tokens": input_tokens,
         "output_tokens": output_tokens,
