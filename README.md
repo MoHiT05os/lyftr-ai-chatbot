@@ -23,8 +23,8 @@ Ensure you have Docker and Docker Compose installed.
 
 1. **Clone the repository and copy the environment file:**
    ```bash
-   git clone <repo-url>
-   cd Lyftr
+   git clone https://github.com/MoHiT05os/lyftr-ai-chatbot.git
+   cd lyftr-ai-chatbot
    cp .env.example .env
    ```
 2. **Start the complete stack:**
