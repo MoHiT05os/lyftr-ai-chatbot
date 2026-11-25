@@ -21,10 +21,15 @@ export default function App() {
   const textareaRef = useRef(null);
 
   useEffect(() => {
-    // Check backend health on mount
-    fetchHealth().then((res) => {
-      setHealth(res);
-    });
+    // Check backend health on mount and poll every 4 seconds
+    const check = () => {
+      fetchHealth().then((res) => {
+        setHealth(res);
+      });
+    };
+    check();
+    const interval = setInterval(check, 4000);
+    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
